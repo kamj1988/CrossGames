@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrossFit Leaderboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>CrossFit Leaderboard</h1>
+
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdr1AZE7yPPkV16v1TgLn6XvM6xJ-ke-eYs60MtQRkuFNcoGA/viewform?usp=header" 
+           target="_blank" 
+           class="add-score-btn">
+            Dodaj swój wynik
+        </a>
+
+        <div class="controls">
+            <label for="wodSelect">Wybierz trening</label>
+            <select id="wodSelect">
+                <option value="">Ładowanie...</option>
+            </select>
+        </div>
+
+        <div id="loading">Ładowanie wyników...</div>
+
+        <div class="table-container">
+            <table id="resultsTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Zawodnik</th>
+                        <th onclick="sortTable(1)">Kategoria</th>
+                        <th onclick="sortTable(2)">Trening</th>
+                        <th onclick="sortTable(3)">Wynik</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script>
+        // === KONFIGURACJA ===
+        // ZMIEŃ TEN LINK NA SWÓJ CSV Z GOOGLE SHEETS
+        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTbyrrgnVOVrieNyKtBg_77laTjcRMeZ8CEM-0lNeW3rD03HzyFalW-LwZYVErkfy0hIY-h-p8BTCid/pub?gid=962649332&single=true&output=csv';
+        
+        let allData = [];
+
+        // Pobierz dane z Google Sheets
+        Papa.parse(sheetUrl, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                allData = results.data;
+                initApp();
+            },
+            error: function(error) {
+                document.getElementById('loading').textContent = 'Błąd ładowania danych: ' + error.message;
+            }
+        });
+
+        function initApp() {
+            document.getElementById('loading').style.display = 'none';
+            populateDropdown();
+        }
+
+        function populateDropdown() {
+            const select = document.getElementById('wodSelect');
+            
+            // Pobierz unikalne WOD-y z kolumny 'Wybierz WOD'
+            const wodNames = [...new Set(allData.map(item => item['Wybierz WOD']).filter(Boolean))];
+            
+            if (wodNames.length === 0) {
+                select.innerHTML = '<option value="">Brak treningów w bazie</option>';
+                return;
+            }
+
+            select.innerHTML = '<option value="">-- Wybierz trening --</option>';
+            
+            wodNames.forEach(wod => {
+                const option = document.createElement('option');
+                option.value = wod;
+                option.textContent = wod;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', (e) => filterTable(e.target.value));
+        }
+
+        function filterTable(selectedWod) {
+            const tbody = document.getElementById('tableBody');
+            const table = document.getElementById('resultsTable');
+            tbody.innerHTML = '';
+
+            if (!selectedWod) {
+                table.style.display = 'none';
+                return;
+            }
+
+            // Filtruj dane dla wybranego WOD-u
+            const filteredData = allData.filter(row => row['Wybierz WOD'] === selectedWod);
+
+            // Sortuj wyniki malejąco (najlepszy na górze)
+            filteredData.sort((a, b) => {
+                const valA = parseFloat(a['Wynik']) || 0;
+                const valB = parseFloat(b['Wynik']) || 0;
+                return valB - valA;
+            });
+
+            // Wyświetl wyniki
+            filteredData.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                const name = row['Imie'] || 'Anonim';
+                const category = row['Kategoria'] || '-';
+                const wod = row['Wybierz WOD'] || '-';
+                const score = row['Wynik'] || '0';
+
+                tr.innerHTML = `
+                    <td>${name}</td>
+                    <td>${category}</td>
+                    <td>${wod}</td>
+                    <td>${score}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            table.style.display = 'table';
+        }
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById("resultsTable");
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Toggle kierunku sortowania
+            const currentDirection = table.dataset.sortDirection || 'asc';
+            const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+            table.dataset.sortDirection = newDirection;
+
+            rows.sort((a, b) => {
+                const cellA = a.getElementsByTagName("TD")[columnIndex].textContent;
+                const cellB = b.getElementsByTagName("TD")[columnIndex].textContent;
+                
+                const numA = parseFloat(cellA);
+                const numB = parseFloat(cellB);
+
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return newDirection === 'asc' ? numA - numB : numB - numA;
+                } else {
+                    return newDirection === 'asc' 
+                        ? cellA.localeCompare(cellB) 
+                        : cellB.localeCompare(cellA);
+                }
+            });
+
+            // Odśwież tabelę
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+</body>
+</html>

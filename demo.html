@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - CrossFit Leaderboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1>LEADERBOARD DEMO</h1>
+                <p class="season-info">Przykładowe dane testowe</p>
+            </div>
+        </header>
+
+        <div style="background: #fff3cd; padding: 20px; text-align: center; border-left: 4px solid #ffc107;">
+            <p style="margin: 0; color: #856404;">
+                ℹ️ To jest wersja demonstracyjna z przykładowymi danymi. 
+                Aby uruchomić prawdziwą stronę, skonfiguruj Google Sheets według instrukcji w README.md
+            </p>
+        </div>
+
+        <div class="controls">
+            <div class="filter-group">
+                <label for="division-filter">Kategoria:</label>
+                <select id="division-filter">
+                    <option value="all">Wszystkie</option>
+                    <option value="RX">RX</option>
+                    <option value="Scaled">Scaled</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="gender-filter">Płeć:</label>
+                <select id="gender-filter">
+                    <option value="all">Wszyscy</option>
+                    <option value="Mężczyzna">Mężczyźni</option>
+                    <option value="Kobieta">Kobiety</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="workout-filter">WOD:</label>
+                <select id="workout-filter">
+                    <option value="all">Wszystkie</option>
+                    <option value="WOD1">WOD 1</option>
+                    <option value="WOD2">WOD 2</option>
+                    <option value="WOD3">WOD 3</option>
+                </select>
+            </div>
+
+            <div class="search-group">
+                <input type="text" id="athlete-search" placeholder="Szukaj zawodnika...">
+            </div>
+        </div>
+
+        <div class="leaderboard-container">
+            <div class="stats-summary" style="display: flex;">
+                <div class="stat-item">
+                    <span class="stat-label">Zawodnicy:</span>
+                    <span class="stat-value" id="total-athletes">20</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Wyniki:</span>
+                    <span class="stat-value" id="total-results">20</span>
+                </div>
+            </div>
+
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th class="rank-col">Miejsce</th>
+                        <th class="name-col">Zawodnik</th>
+                        <th class="gym-col">Box</th>
+                        <th class="division-col">Kategoria</th>
+                        <th class="gender-col">Płeć</th>
+                        <th class="workout-col">WOD</th>
+                        <th class="score-col">Wynik</th>
+                        <th class="date-col">Data</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge gold">1</span></td>
+                        <td class="name-col">Jan Kowalski</td>
+                        <td class="gym-col">CrossFit Warsaw</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">150 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge silver">2</span></td>
+                        <td class="name-col">Piotr Wiśniewski</td>
+                        <td class="gym-col">CrossFit Gdańsk</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">145 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge bronze">3</span></td>
+                        <td class="name-col">Tomasz Szymański</td>
+                        <td class="gym-col">CrossFit Łódź</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">138 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">4</span></td>
+                        <td class="name-col">Marek Lewandowski</td>
+                        <td class="gym-col">CrossFit Poznań</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">132 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">5</span></td>
+                        <td class="name-col">Anna Nowak</td>
+                        <td class="gym-col">CrossFit Kraków</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">125 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">6</span></td>
+                        <td class="name-col">Katarzyna Zielińska</td>
+                        <td class="gym-col">CrossFit Warszawa</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">118 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">7</span></td>
+                        <td class="name-col">Magdalena Woźniak</td>
+                        <td class="gym-col">CrossFit Katowice</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">112 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">8</span></td>
+                        <td class="name-col">Krzysztof Kozłowski</td>
+                        <td class="gym-col">CrossFit Gdynia</td>
+                        <td class="division-col"><span class="division-badge scaled">Scaled</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">105 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">9</span></td>
+                        <td class="name-col">Ewa Kamińska</td>
+                        <td class="gym-col">CrossFit Wrocław</td>
+                        <td class="division-col"><span class="division-badge scaled">Scaled</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">95 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">10</span></td>
+                        <td class="name-col">Joanna Jankowska</td>
+                        <td class="gym-col">CrossFit Szczecin</td>
+                        <td class="division-col"><span class="division-badge scaled">Scaled</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD1</td>
+                        <td class="score-col">88 reps</td>
+                        <td class="date-col">17.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">11</span></td>
+                        <td class="name-col">Michał Mazur</td>
+                        <td class="gym-col">CrossFit Bydgoszcz</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD2</td>
+                        <td class="score-col">07:45</td>
+                        <td class="date-col">18.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">12</span></td>
+                        <td class="name-col">Andrzej Nowicki</td>
+                        <td class="gym-col">CrossFit Rzeszów</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD2</td>
+                        <td class="score-col">08:15</td>
+                        <td class="date-col">18.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">13</span></td>
+                        <td class="name-col">Aleksandra Król</td>
+                        <td class="gym-col">CrossFit Lublin</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD2</td>
+                        <td class="score-col">09:30</td>
+                        <td class="date-col">18.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">14</span></td>
+                        <td class="name-col">Marta Wójcik</td>
+                        <td class="gym-col">CrossFit Białystok</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD2</td>
+                        <td class="score-col">10:12</td>
+                        <td class="date-col">18.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">15</span></td>
+                        <td class="name-col">Robert Kaczmarek</td>
+                        <td class="gym-col">CrossFit Gliwice</td>
+                        <td class="division-col"><span class="division-badge scaled">Scaled</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD2</td>
+                        <td class="score-col">11:45</td>
+                        <td class="date-col">18.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">16</span></td>
+                        <td class="name-col">Agnieszka Piotrowska</td>
+                        <td class="gym-col">CrossFit Toruń</td>
+                        <td class="division-col"><span class="division-badge scaled">Scaled</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD2</td>
+                        <td class="score-col">13:20</td>
+                        <td class="date-col">18.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">17</span></td>
+                        <td class="name-col">Paweł Zając</td>
+                        <td class="gym-col">CrossFit Olsztyn</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD3</td>
+                        <td class="score-col">180 kg</td>
+                        <td class="date-col">19.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">18</span></td>
+                        <td class="name-col">Kamil Dąbrowski</td>
+                        <td class="gym-col">CrossFit Kielce</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♂️</span> Mężczyzna</td>
+                        <td class="workout-col">WOD3</td>
+                        <td class="score-col">170 kg</td>
+                        <td class="date-col">19.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">19</span></td>
+                        <td class="name-col">Natalia Adamczyk</td>
+                        <td class="gym-col">CrossFit Opole</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD3</td>
+                        <td class="score-col">110 kg</td>
+                        <td class="date-col">19.01.2026</td>
+                    </tr>
+                    <tr>
+                        <td class="rank-col"><span class="rank-badge regular">20</span></td>
+                        <td class="name-col">Karolina Sikora</td>
+                        <td class="gym-col">CrossFit Zielona Góra</td>
+                        <td class="division-col"><span class="division-badge rx">RX</span></td>
+                        <td class="gender-col"><span class="gender-icon">♀️</span> Kobieta</td>
+                        <td class="workout-col">WOD3</td>
+                        <td class="score-col">100 kg</td>
+                        <td class="date-col">19.01.2026</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer class="footer">
+            <p>© 2026 CrossFit Zawody | Wersja demonstracyjna</p>
+            <p class="footer-links">
+                <a href="index.html">Powrót do aplikacji</a> |
+                <a href="README.md" target="_blank">Dokumentacja</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="demo.js"></script>
+</body>
+</html>
