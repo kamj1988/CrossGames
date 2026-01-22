@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodaj wynik - CrossFit Leaderboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #2d3748;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: #1a202c;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #90cdf4;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #a0aec0;
+            font-size: 14px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #90cdf4;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #2f855a;
+            color: white;
+        }
+        
+        .message.error {
+            background: #c53030;
+            color: white;
+        }
+        
+        .message.info {
+            background: #2c5282;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Powrót do tabeli wyników</a>
+        
+        <h1>Dodaj swój wynik</h1>
+        
+        <div class="form-container">
+            <div id="message"></div>
+            
+            <form id="resultForm">
+                <div class="form-group">
+                    <label for="imie">Imię i nazwisko *</label>
+                    <input type="text" id="imie" name="imie" required placeholder="np. Jan Kowalski">
+                </div>
+                
+                <div class="form-group">
+                    <label for="kategoria">Kategoria *</label>
+                    <select id="kategoria" name="kategoria" required>
+                        <option value="">Ładowanie...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="wod_id">Wybierz trening *</label>
+                    <select id="wod_id" name="wod_id" required>
+                        <option value="">Ładowanie...</option>
+                    </select>
+                    <small id="wodInfo"></small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="wyniki">Wynik *</label>
+                    <input type="text" id="wyniki" name="wyniki" required placeholder="np. 45:30 lub 45.30">
+                    <small id="resultHelp">Dla "For Time": wpisz czas jako MM:SS lub MM.SS lub MM,SS (np. 12:30 = 12 minut 30 sekund)<br>Dla "AMRAP": wpisz liczbę powtórzeń (np. 150)</small>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">Zapisz wynik</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // === KONFIGURACJA SUPABASE ===
+        const SUPABASE_URL = 'https://xaqghgehuqjtpzzjihrl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhcWdoZ2VodXFqdHB6emppaHJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwMjE0NDAsImV4cCI6MjA4NDU5NzQ0MH0.xyVj7UWVH6SvTKEHJH-RL57YcpBfp_7rrhtzjfdvYyQ';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let allWods = [];
+        let allKategorie = [];
+
+        // Funkcja do wyświetlania komunikatów
+        function showMessage(text, type = 'info') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }
+        }
+
+        // Inicjalizacja formularza
+        async function initForm() {
+            try {
+                // Pobierz WOD-y
+                const { data: wods, error: wodsError } = await supabaseClient
+                    .from('wods')
+                    .select('*')
+                    .order('nazwa');
+                
+                if (wodsError) throw wodsError;
+                allWods = wods;
+                
+                // Pobierz kategorie
+                const { data: kategorie, error: kategorieError } = await supabaseClient
+                    .from('kategorie')
+                    .select('*')
+                    .order('nazwa');
+                
+                if (kategorieError) throw kategorieError;
+                allKategorie = kategorie;
+                
+                populateSelects();
+            } catch (error) {
+                showMessage('Błąd ładowania danych: ' + error.message, 'error');
+            }
+        }
+
+        function populateSelects() {
+            // Wypełnij dropdown kategorii
+            const kategoriaSelect = document.getElementById('kategoria');
+            kategoriaSelect.innerHTML = '<option value="">-- Wybierz kategorię --</option>';
+            allKategorie.forEach(kat => {
+                const option = document.createElement('option');
+                option.value = kat.nazwa;
+                option.textContent = kat.nazwa;
+                kategoriaSelect.appendChild(option);
+            });
+            
+            // Wypełnij dropdown WOD-ów
+            const wodSelect = document.getElementById('wod_id');
+            wodSelect.innerHTML = '<option value="">-- Wybierz trening --</option>';
+            allWods.forEach(wod => {
+                const option = document.createElement('option');
+                option.value = wod.id;
+                option.textContent = wod.nazwa;
+                wodSelect.appendChild(option);
+            });
+            
+            // Pokaż info o wybranym WOD
+            wodSelect.addEventListener('change', (e) => {
+                const selectedWod = allWods.find(w => w.id == e.target.value);
+                const wodInfo = document.getElementById('wodInfo');
+                
+                if (selectedWod) {
+                    wodInfo.textContent = `${selectedWod.typ} - ${selectedWod.opis || 'Brak opisu'}`;
+                } else {
+                    wodInfo.textContent = '';
+                }
+            });
+        }
+
+        // Obsługa wysyłania formularza
+        document.getElementById('resultForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Zapisywanie...';
+            
+            // Konwertuj czas z formatu MM:SS lub MM.SS lub MM,SS na minuty dziesiętne
+            const wynikiInput = document.getElementById('wyniki').value.trim();
+            let wynikiValue;
+            
+            if (wynikiInput.includes(':') || wynikiInput.includes('.') || wynikiInput.includes(',')) {
+                // Format MM:SS lub MM.SS lub MM,SS -> konwertuj na minuty
+                const parts = wynikiInput.split(/[:.,]/).map(p => parseInt(p) || 0);
+                const minutes = parts[0] || 0;
+                const seconds = parts[1] || 0;
+                wynikiValue = minutes + (seconds / 60); // np. 12:30 -> 12.5
+            } else {
+                // Sama liczba (dla AMRAP)
+                wynikiValue = parseFloat(wynikiInput);
+            }
+            
+            const formData = {
+                imie: document.getElementById('imie').value.trim(),
+                kategoria: document.getElementById('kategoria').value,
+                wod_id: parseInt(document.getElementById('wod_id').value),
+                wyniki: wynikiValue
+            };
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('wyniki')
+                    .insert([formData])
+                    .select();
+                
+                if (error) throw error;
+                
+                showMessage('✓ Wynik zapisany! Przekierowuję...', 'success');
+            } catch (error) {
+                showMessage('Błąd zapisywania: ' + error.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Zapisz wynik';
+            }
+        });
+
+        // Start
+        initForm();
+    </script>
+</body>
+</html>

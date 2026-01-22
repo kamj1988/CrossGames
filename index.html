@@ -28,19 +28,35 @@
 </head>
 <body>
     <div class="container">
-        <h1>CrossFit Leaderboard</h1>
+        <div style="position: relative; margin-bottom: 30px;">
+            <a href="admin-panel.html" 
+               style="position: absolute; top: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; white-space: nowrap; transition: transform 0.2s; display: inline-block;"
+               onmouseover="this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.transform='translateY(0)'">
+                🔐 Panel admina
+            </a>
+            
+            <h1 style="margin: 0; text-align: center; font-size: 3rem; padding: 10px 0;">CrossFit Leaderboard</h1>
+        </div>
 
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdr1AZE7yPPkV16v1TgLn6XvM6xJ-ke-eYs60MtQRkuFNcoGA/viewform?usp=header" 
-           target="_blank" 
+        <a href="add-result.html" 
            class="add-score-btn">
             Dodaj swój wynik
         </a>
 
         <div class="controls">
-            <label for="wodSelect">Wybierz trening</label>
-            <select id="wodSelect">
-                <option value="">Ładowanie...</option>
-            </select>
+            <div class="control-row">
+                <div class="control-item">
+                    <label for="searchInput">Wyszukaj zawodnika</label>
+                    <input type="text" id="searchInput" placeholder="Wpisz imię...">
+                </div>
+                <div class="control-item">
+                    <label for="wodSelect">Wybierz trening</label>
+                    <select id="wodSelect">
+                        <option value="">Ładowanie...</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
         <div id="loading">Ładowanie wyników...</div>
@@ -60,95 +76,152 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // === KONFIGURACJA ===
-        // ZMIEŃ TEN LINK NA SWÓJ CSV Z GOOGLE SHEETS
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTbyrrgnVOVrieNyKtBg_77laTjcRMeZ8CEM-0lNeW3rD03HzyFalW-LwZYVErkfy0hIY-h-p8BTCid/pub?gid=962649332&single=true&output=csv';
+        // === KONFIGURACJA SUPABASE ===
+        const SUPABASE_URL = 'https://xaqghgehuqjtpzzjihrl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhcWdoZ2VodXFqdHB6emppaHJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwMjE0NDAsImV4cCI6MjA4NDU5NzQ0MH0.xyVj7UWVH6SvTKEHJH-RL57YcpBfp_7rrhtzjfdvYyQ';
         
-        let allData = [];
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let allWods = [];
+        let allResults = [];
 
-        // Pobierz dane z Google Sheets
-        Papa.parse(sheetUrl, {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                allData = results.data;
-                initApp();
-            },
-            error: function(error) {
+        // Inicjalizacja aplikacji
+        async function initApp() {
+            try {
+                // Pobierz WOD-y
+                const { data: wods, error: wodsError } = await supabaseClient
+                    .from('wods')
+                    .select('*');
+                
+                if (wodsError) throw wodsError;
+                allWods = wods;
+                
+                document.getElementById('loading').style.display = 'none';
+                populateDropdown();
+            } catch (error) {
                 document.getElementById('loading').textContent = 'Błąd ładowania danych: ' + error.message;
             }
-        });
-
-        function initApp() {
-            document.getElementById('loading').style.display = 'none';
-            populateDropdown();
         }
 
         function populateDropdown() {
             const select = document.getElementById('wodSelect');
             
-            // Pobierz unikalne WOD-y z kolumny 'Wybierz WOD'
-            const wodNames = [...new Set(allData.map(item => item['Wybierz WOD']).filter(Boolean))];
-            
-            if (wodNames.length === 0) {
+            if (allWods.length === 0) {
                 select.innerHTML = '<option value="">Brak treningów w bazie</option>';
                 return;
             }
 
             select.innerHTML = '<option value="">-- Wybierz trening --</option>';
             
-            wodNames.forEach(wod => {
+            allWods.forEach(wod => {
                 const option = document.createElement('option');
-                option.value = wod;
-                option.textContent = wod;
+                option.value = wod.id;
+                option.textContent = wod.nazwa;
                 select.appendChild(option);
             });
 
             select.addEventListener('change', (e) => filterTable(e.target.value));
+            
+            // Wyszukiwanie zawodników
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const currentWod = document.getElementById('wodSelect').value;
+                if (currentWod) {
+                    filterTable(currentWod);
+                }
+            });
         }
 
-        function filterTable(selectedWod) {
+        async function filterTable(selectedWodId) {
             const tbody = document.getElementById('tableBody');
             const table = document.getElementById('resultsTable');
             tbody.innerHTML = '';
 
-            if (!selectedWod) {
+            if (!selectedWodId) {
                 table.style.display = 'none';
                 return;
             }
 
-            // Filtruj dane dla wybranego WOD-u
-            const filteredData = allData.filter(row => row['Wybierz WOD'] === selectedWod);
-
-            // Sortuj wyniki malejąco (najlepszy na górze)
-            filteredData.sort((a, b) => {
-                const valA = parseFloat(a['Wynik']) || 0;
-                const valB = parseFloat(b['Wynik']) || 0;
-                return valB - valA;
-            });
-
-            // Wyświetl wyniki
-            filteredData.forEach(row => {
-                const tr = document.createElement('tr');
+            try {
+                // Pobierz wyniki dla wybranego WOD-u
+                const { data: results, error } = await supabaseClient
+                    .from('wyniki')
+                    .select('*, wods(nazwa, typ, jednostka)')
+                    .eq('wod_id', selectedWodId);
                 
-                const name = row['Imie'] || 'Anonim';
-                const category = row['Kategoria'] || '-';
-                const wod = row['Wybierz WOD'] || '-';
-                const score = row['Wynik'] || '0';
+                if (error) throw error;
+                
+                const selectedWod = allWods.find(w => w.id == selectedWodId);
+                const searchText = document.getElementById('searchInput').value.toLowerCase();
+                
+                // Filtruj po imieniu jeśli jest wyszukiwanie
+                let filteredData = results;
+                if (searchText) {
+                    filteredData = results.filter(row => {
+                        const name = (row.imie || '').toLowerCase();
+                        return name.includes(searchText);
+                    });
+                }
 
-                tr.innerHTML = `
-                    <td>${name}</td>
-                    <td>${category}</td>
-                    <td>${wod}</td>
-                    <td>${score}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+                // Sortuj wyniki inteligentnie
+                filteredData.sort((a, b) => {
+                    const valA = parseFloat(a.wyniki) || 0;
+                    const valB = parseFloat(b.wyniki) || 0;
+                    
+                    // For Time: mniejszy czas = lepszy (rosnąco)
+                    // AMRAP: więcej reps = lepszy (malejąco)
+                    if (selectedWod.typ === 'For Time') {
+                        return valA - valB;
+                    } else {
+                        return valB - valA;
+                    }
+                });
 
-            table.style.display = 'table';
+                // Wyświetl wyniki
+                filteredData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    
+                    const name = row.imie || 'Anonim';
+                    const category = row.kategoria || '-';
+                    const wodName = row.wods?.nazwa || selectedWod.nazwa;
+                    const wodType = row.wods?.typ || selectedWod.typ;
+                    const wodUnit = row.wods?.jednostka || selectedWod.jednostka;
+                    const score = formatScore(row.wyniki, wodType, wodUnit);
+
+                    tr.innerHTML = `
+                        <td>${name}</td>
+                        <td>${category}</td>
+                        <td>${wodName}</td>
+                        <td>${score}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                table.style.display = 'table';
+            } catch (error) {
+                console.error('Błąd pobierania wyników:', error);
+                tbody.innerHTML = '<tr><td colspan="4">Błąd ładowania wyników</td></tr>';
+            }
+        }
+
+        function formatScore(value, type, unit) {
+            const numValue = parseFloat(value);
+            
+            if (isNaN(numValue)) {
+                return value || '0';
+            }
+            
+            if (type === 'For Time') {
+                // Konwertuj 45.5 na 45:30 min
+                const minutes = Math.floor(numValue);
+                const seconds = Math.round((numValue - minutes) * 60);
+                return `${minutes}:${seconds.toString().padStart(2, '0')} ${unit}`;
+            } else {
+                // AMRAP - po prostu liczba
+                return `${Math.round(numValue)} ${unit}`;
+            }
         }
 
         function sortTable(columnIndex) {
@@ -156,7 +229,6 @@
             const tbody = table.querySelector('tbody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
             
-            // Toggle kierunku sortowania
             const currentDirection = table.dataset.sortDirection || 'asc';
             const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
             table.dataset.sortDirection = newDirection;
@@ -177,9 +249,11 @@
                 }
             });
 
-            // Odśwież tabelę
             rows.forEach(row => tbody.appendChild(row));
         }
+
+        // Start aplikacji
+        initApp();
     </script>
 </body>
 </html>

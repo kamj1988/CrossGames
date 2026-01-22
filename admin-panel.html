@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administratora - CrossFit Leaderboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 40px;
+            background: #2d3748;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .logout-btn {
+            padding: 10px 20px;
+            background: #c53030;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .logout-btn:hover {
+            background: #9b2c2c;
+        }
+        
+        .form-container {
+            max-width: 700px;
+            margin: 0 auto 40px;
+            padding: 30px;
+            background: #2d3748;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-container h2 {
+            margin-bottom: 20px;
+            color: #e2e8f0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: #1a202c;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #90cdf4;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .wods-list {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .wod-item {
+            background: #2d3748;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .wod-content {
+            flex: 1;
+        }
+        
+        .wod-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 20px;
+        }
+        
+        .edit-btn, .delete-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .edit-btn {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .edit-btn:hover {
+            background: #3182ce;
+        }
+        
+        .delete-btn {
+            background: #c53030;
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background: #9b2c2c;
+        }
+        
+        .wod-item h3 {
+            color: #90cdf4;
+            margin-bottom: 10px;
+        }
+        
+        .wod-item p {
+            color: #e2e8f0;
+            margin: 5px 0;
+        }
+        
+        .wod-item .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #4a5568;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #90cdf4;
+            margin-right: 10px;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #2f855a;
+            color: white;
+        }
+        
+        .message.error {
+            background: #c53030;
+            color: white;
+        }
+        
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #90cdf4;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        #adminContent {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Ekran logowania -->
+        <div id="loginScreen" class="login-container">
+            <h2>🔐 Panel Administratora</h2>
+            
+            <div id="loginMessage"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="password">Hasło administratora</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                
+                <button type="submit" class="submit-btn">Zaloguj się</button>
+            </form>
+            
+            <a href="index.html" class="back-link">← Powrót do strony głównej</a>
+        </div>
+        
+        <!-- Panel administratora -->
+        <div id="adminContent">
+            <div class="admin-header">
+                <div style="flex: 1; text-align: center;">
+                    <h1>Panel Administratora</h1>
+                    <p style="color: #a0aec0;">Zarządzanie treningami (WOD-ami)</p>
+                </div>
+                <button class="logout-btn" onclick="logout()" style="position: absolute; right: 0;">Wyloguj się</button>
+            </div>
+            
+            <div class="form-container">
+                <h2 id="formTitle">➕ Dodaj nowy trening</h2>
+                
+                <div id="message"></div>
+                
+                <form id="wodForm">
+                    <input type="hidden" id="editingId" value="">
+                    
+                    <div class="form-group">
+                        <label for="nazwa">Nazwa treningu *</label>
+                        <input type="text" id="nazwa" required placeholder="np. Murph, Fran, Grace">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="typ">Typ treningu *</label>
+                        <select id="typ" required>
+                            <option value="">-- Wybierz typ --</option>
+                            <option value="For Time">For Time</option>
+                            <option value="AMRAP">AMRAP</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="jednostka">Jednostka *</label>
+                        <select id="jednostka" required>
+                            <option value="min">min</option>
+                            <option value="reps">reps</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="opis">Opis treningu (opcjonalny)</label>
+                        <textarea id="opis" placeholder="np. 1 Mile Run, 100 Pull-ups, 200 Push-ups, 300 Squats, 1 Mile Run"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">Dodaj trening</button>
+                    <button type="button" class="submit-btn" id="cancelBtn" onclick="cancelEdit()" style="display: none; background: #4a5568; margin-top: 10px;">Anuluj edycję</button>
+                </form>
+            </div>
+            
+            <div class="wods-list">
+                <h2 style="color: #e2e8f0; margin-bottom: 20px;">📋 Lista treningów</h2>
+                <div id="wodsList">Ładowanie...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // === KONFIGURACJA ===
+        const ADMIN_PASSWORD = 'admin123'; // ZMIEŃ TO HASŁO!
+        
+        const SUPABASE_URL = 'https://xaqghgehuqjtpzzjihrl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhcWdoZ2VodXFqdHB6emppaHJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwMjE0NDAsImV4cCI6MjA4NDU5NzQ0MH0.xyVj7UWVH6SvTKEHJH-RL57YcpBfp_7rrhtzjfdvYyQ';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function showLoginMessage(text, type = 'error') {
+            const messageDiv = document.getElementById('loginMessage');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        function showMessage(text, type = 'success') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Sprawdź czy jest zalogowany
+        function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            if (isLoggedIn === 'true') {
+                showAdminPanel();
+            }
+        }
+
+        function showAdminPanel() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            loadWods();
+        }
+
+        function logout() {
+            sessionStorage.removeItem('adminLoggedIn');
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('adminContent').style.display = 'none';
+            document.getElementById('password').value = '';
+        }
+
+        // Obsługa logowania
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                showAdminPanel();
+            } else {
+                showLoginMessage('Nieprawidłowe hasło!', 'error');
+            }
+        });
+
+        // Pobierz i wyświetl WOD-y
+        async function loadWods() {
+            try {
+                const { data: wods, error } = await supabaseClient
+                    .from('wods')
+                    .select('*')
+                    .order('nazwa');
+                
+                if (error) throw error;
+                
+                const wodsList = document.getElementById('wodsList');
+                
+                if (wods.length === 0) {
+                    wodsList.innerHTML = '<p style="color: #a0aec0;">Brak treningów w bazie.</p>';
+                    return;
+                }
+                
+                wodsList.innerHTML = wods.map(wod => `
+                    <div class="wod-item">
+                        <div class="wod-content">
+                            <h3>${wod.nazwa}</h3>
+                            <p>
+                                <span class="badge">${wod.typ}</span>
+                                <span class="badge">${wod.jednostka}</span>
+                            </p>
+                            ${wod.opis ? `<p>${wod.opis}</p>` : ''}
+                        </div>
+                        <div class="wod-actions">
+                            <button class="edit-btn" onclick="editWod(${wod.id})">Edytuj</button>
+                            <button class="delete-btn" onclick="deleteWod(${wod.id}, '${wod.nazwa.replace(/'/g, "\\'")}')">Usuń</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('wodsList').innerHTML = 
+                    '<p style="color: #c53030;">Błąd ładowania treningów: ' + error.message + '</p>';
+            }
+        }
+
+        // Obsługa formularza
+        document.getElementById('wodForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Zapisywanie...';
+            
+            const editingId = document.getElementById('editingId').value;
+            const wodData = {
+                nazwa: document.getElementById('nazwa').value.trim(),
+                typ: document.getElementById('typ').value,
+                jednostka: document.getElementById('jednostka').value.trim(),
+                opis: document.getElementById('opis').value.trim() || null
+            };
+            
+            try {
+                if (editingId) {
+                    // Edycja istniejącego treningu
+                    const { data, error } = await supabaseClient
+                        .from('wods')
+                        .update(wodData)
+                        .eq('id', editingId)
+                        .select();
+                    
+                    if (error) throw error;
+                    showMessage('✓ Trening zaktualizowany pomyślnie!', 'success');
+                } else {
+                    // Dodawanie nowego treningu
+                    const { data, error } = await supabaseClient
+                        .from('wods')
+                        .insert([wodData])
+                        .select();
+                    
+                    if (error) throw error;
+                    showMessage('✓ Trening dodany pomyślnie!', 'success');
+                }
+                
+                // Wyczyść formularz i resetuj tryb edycji
+                cancelEdit();
+                
+                // Odśwież listę
+                await loadWods();
+            } catch (error) {
+                showMessage('Błąd: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        // Funkcja edycji treningu
+        async function editWod(id) {
+            try {
+                const { data: wod, error } = await supabaseClient
+                    .from('wods')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                
+                // Wypełnij formularz danymi
+                document.getElementById('editingId').value = wod.id;
+                document.getElementById('nazwa').value = wod.nazwa;
+                document.getElementById('typ').value = wod.typ;
+                document.getElementById('jednostka').value = wod.jednostka;
+                document.getElementById('opis').value = wod.opis || '';
+                
+                // Zmień tytuł i tekst przycisku
+                document.getElementById('formTitle').textContent = '✏️ Edytuj trening';
+                document.getElementById('submitBtn').textContent = 'Zaktualizuj trening';
+                document.getElementById('cancelBtn').style.display = 'block';
+                
+                // Przewiń do formularza
+                document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                alert('Błąd ładowania danych: ' + error.message);
+            }
+        }
+
+        // Funkcja usuwania treningu
+        async function deleteWod(id, nazwa) {
+            if (!confirm(`Czy na pewno chcesz usunąć trening "${nazwa}"?`)) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('wods')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                showMessage('✓ Trening usunięty!', 'success');
+                await loadWods();
+            } catch (error) {
+                showMessage('Błąd usuwania: ' + error.message, 'error');
+            }
+        }
+
+        // Anuluj edycję
+        function cancelEdit() {
+            document.getElementById('wodForm').reset();
+            document.getElementById('editingId').value = '';
+            document.getElementById('formTitle').textContent = '➕ Dodaj nowy trening';
+            document.getElementById('submitBtn').textContent = 'Dodaj trening';
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        // Inicjalizacja
+        checkAuth();
+    </script>
+</body>
+</html>

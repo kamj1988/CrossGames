@@ -55,6 +55,17 @@ h1 {
     border: 1px solid #4a5568;
 }
 
+.control-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.control-item {
+    display: flex;
+    flex-direction: column;
+}
+
 .controls label {
     display: block;
     font-size: 0.875rem;
@@ -63,9 +74,36 @@ h1 {
     margin-bottom: 8px;
 }
 
-select {
+input[type="text"] {
     width: 100%;
     padding: 10px 14px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    background: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+input[type="text"]:hover {
+    border-color: #718096;
+    background: #2d3748;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #90cdf4;
+    background: #2d3748;
+}
+
+input[type="text"]::placeholder {
+    color: #718096;
+}
+
+select {
+    width: 100%;
+    padding: 10px 40px 10px 14px;
     font-size: 0.95rem;
     font-family: 'Inter', sans-serif;
     background: #1a202c;
@@ -198,5 +236,6 @@ td:nth-child(4) {
     body { padding: 10px; }
     h1 { font-size: 1.5rem; }
     .controls { padding: 16px; }
+    .control-row { grid-template-columns: 1fr; gap: 16px; }
     th, td { padding: 10px 8px; font-size: 0.825rem; }
 }
