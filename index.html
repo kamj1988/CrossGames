@@ -29,15 +29,27 @@
 <body>
     <div class="container">
         <div style="position: relative; margin-bottom: 30px;">
+            <h1 style="margin: 0; text-align: center; font-size: 3rem; padding: 10px 0;">CrossFit Leaderboard</h1>
+            
             <a href="admin-panel.html" 
+               id="adminBtn"
                style="position: absolute; top: 0; right: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; white-space: nowrap; transition: transform 0.2s; display: inline-block;"
                onmouseover="this.style.transform='translateY(-2px)'" 
                onmouseout="this.style.transform='translateY(0)'">
                 🔐 Panel admina
             </a>
-            
-            <h1 style="margin: 0; text-align: center; font-size: 3rem; padding: 10px 0;">CrossFit Leaderboard</h1>
         </div>
+        
+        <style>
+            @media (max-width: 768px) {
+                #adminBtn {
+                    position: static !important;
+                    display: block !important;
+                    margin: 15px auto 0 !important;
+                    width: fit-content !important;
+                }
+            }
+        </style>
 
         <a href="add-result.html" 
            class="add-score-btn">
