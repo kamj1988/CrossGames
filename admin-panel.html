@@ -234,7 +234,12 @@
             
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="password">Hasło administratora</label>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="admin@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Hasło</label>
                     <input type="password" id="password" required placeholder="••••••••">
                 </div>
                 
@@ -304,8 +309,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // === KONFIGURACJA ===
-        const ADMIN_PASSWORD = 'KoksyZ6rano!'; // ZMIEŃ TO HASŁO!
-        
         const SUPABASE_URL = 'https://xaqghgehuqjtpzzjihrl.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhcWdoZ2VodXFqdHB6emppaHJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwMjE0NDAsImV4cCI6MjA4NDU5NzQ0MH0.xyVj7UWVH6SvTKEHJH-RL57YcpBfp_7rrhtzjfdvYyQ';
         
@@ -329,10 +332,10 @@
             }, 5000);
         }
 
-        // Sprawdź czy jest zalogowany
-        function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-            if (isLoggedIn === 'true') {
+        // Sprawdź czy użytkownik jest zalogowany
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
                 showAdminPanel();
             }
         }
@@ -343,24 +346,38 @@
             loadWods();
         }
 
-        function logout() {
-            sessionStorage.removeItem('adminLoggedIn');
+        async function logout() {
+            await supabaseClient.auth.signOut();
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('adminContent').style.display = 'none';
+            document.getElementById('email').value = '';
             document.getElementById('password').value = '';
         }
 
         // Obsługa logowania
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logowanie...';
+            
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             
-            if (password === ADMIN_PASSWORD) {
-                sessionStorage.setItem('adminLoggedIn', 'true');
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
                 showAdminPanel();
-            } else {
-                showLoginMessage('Nieprawidłowe hasło!', 'error');
+            } catch (error) {
+                showLoginMessage('Nieprawidłowy email lub hasło!', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Zaloguj się';
             }
         });
 
