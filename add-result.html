@@ -147,8 +147,17 @@
                 
                 <div class="form-group">
                     <label for="wyniki">Wynik *</label>
-                    <input type="text" id="wyniki" name="wyniki" required placeholder="np. 45:30 lub 45.30">
-                    <small id="resultHelp">Dla "For Time": wpisz czas jako MM:SS lub MM.SS lub MM,SS (np. 12:30 = 12 minut 30 sekund)<br>Dla "AMRAP": wpisz liczbę powtórzeń (np. 150)</small>
+                    <div id="timePickerContainer" style="display: none; display: flex; gap: 10px; align-items: center;">
+                        <div style="flex: 1;">
+                            <input type="number" id="minutes" min="0" placeholder="Min" style="width: 100%;">
+                        </div>
+                        <span style="color: #e2e8f0; font-size: 24px; font-weight: bold;">:</span>
+                        <div style="flex: 1;">
+                            <input type="number" id="seconds" min="0" max="59" placeholder="Sek" style="width: 100%;">
+                        </div>
+                    </div>
+                    <input type="text" id="wyniki" name="wyniki" required placeholder="np. 150" style="display: none;">
+                    <small id="resultHelp">Wybierz trening aby zobaczyć odpowiednie pole</small>
                 </div>
                 
                 <button type="submit" class="submit-btn" id="submitBtn">Zapisz wynik</button>
@@ -233,11 +242,39 @@
             wodSelect.addEventListener('change', (e) => {
                 const selectedWod = allWods.find(w => w.id == e.target.value);
                 const wodInfo = document.getElementById('wodInfo');
+                const wynikiInput = document.getElementById('wyniki');
+                const timePickerContainer = document.getElementById('timePickerContainer');
+                const resultHelp = document.getElementById('resultHelp');
+                const minutesInput = document.getElementById('minutes');
+                const secondsInput = document.getElementById('seconds');
                 
                 if (selectedWod) {
                     wodInfo.textContent = `${selectedWod.typ} - ${selectedWod.opis || 'Brak opisu'}`;
+                    
+                    // Pokaż odpowiednie pole w zależności od typu
+                    if (selectedWod.typ === 'For Time') {
+                        wynikiInput.style.display = 'none';
+                        wynikiInput.required = false;
+                        timePickerContainer.style.display = 'flex';
+                        minutesInput.required = true;
+                        secondsInput.required = true;
+                        resultHelp.textContent = 'Wpisz czas w minutach i sekundach (np. 45 min 30 sek)';
+                    } else {
+                        wynikiInput.style.display = 'block';
+                        wynikiInput.required = true;
+                        wynikiInput.type = 'number';
+                        wynikiInput.placeholder = 'np. 150';
+                        timePickerContainer.style.display = 'none';
+                        minutesInput.required = false;
+                        secondsInput.required = false;
+                        resultHelp.textContent = `Wpisz liczbę powtórzeń (${selectedWod.jednostka})`;
+                    }
                 } else {
                     wodInfo.textContent = '';
+                    wynikiInput.style.display = 'block';
+                    wynikiInput.type = 'text';
+                    timePickerContainer.style.display = 'none';
+                    resultHelp.textContent = 'Wybierz trening aby zobaczyć odpowiednie pole';
                 }
             });
         }
@@ -250,25 +287,23 @@
             submitBtn.disabled = true;
             submitBtn.textContent = 'Zapisywanie...';
             
-            // Konwertuj czas z formatu MM:SS lub MM.SS lub MM,SS na minuty dziesiętne
-            const wynikiInput = document.getElementById('wyniki').value.trim();
-            let wynikiValue;
+            const selectedWodId = parseInt(document.getElementById('wod_id').value);
+            const selectedWod = allWods.find(w => w.id === selectedWodId);
             
-            if (wynikiInput.includes(':') || wynikiInput.includes('.') || wynikiInput.includes(',')) {
-                // Format MM:SS lub MM.SS lub MM,SS -> konwertuj na minuty
-                const parts = wynikiInput.split(/[:.,]/).map(p => parseInt(p) || 0);
-                const minutes = parts[0] || 0;
-                const seconds = parts[1] || 0;
-                wynikiValue = minutes + (seconds / 60); // np. 12:30 -> 12.5
+            // Pobierz wynik w zależności od typu treningu
+            let wynikiValue;
+            if (selectedWod.typ === 'For Time') {
+                const minutes = parseInt(document.getElementById('minutes').value) || 0;
+                const seconds = parseInt(document.getElementById('seconds').value) || 0;
+                wynikiValue = minutes + (seconds / 60); // Konwertuj na minuty dziesiętne
             } else {
-                // Sama liczba (dla AMRAP)
-                wynikiValue = parseFloat(wynikiInput);
+                wynikiValue = parseFloat(document.getElementById('wyniki').value);
             }
             
             const formData = {
                 imie: document.getElementById('imie').value.trim(),
                 kategoria: document.getElementById('kategoria').value,
-                wod_id: parseInt(document.getElementById('wod_id').value),
+                wod_id: selectedWodId,
                 wyniki: wynikiValue
             };
             
