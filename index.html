@@ -69,6 +69,7 @@
                         <th onclick="sortTable(1)">Kategoria</th>
                         <th onclick="sortTable(2)">Trening</th>
                         <th onclick="sortTable(3)">Wynik</th>
+                        <th>Uwagi</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -189,12 +190,14 @@
                     const wodType = row.wods?.typ || selectedWod.typ;
                     const wodUnit = row.wods?.jednostka || selectedWod.jednostka;
                     const score = formatScore(row.wyniki, wodType, wodUnit);
+                    const notes = row.opis ? `<span style="color: #a0aec0; font-size: 0.9em;">${row.opis}</span>` : '-';
 
                     tr.innerHTML = `
                         <td>${name}</td>
                         <td>${category}</td>
                         <td>${wodName}</td>
                         <td>${score}</td>
+                        <td>${notes}</td>
                     `;
                     tbody.appendChild(tr);
                 });

@@ -160,6 +160,12 @@
                     <small id="resultHelp">Wybierz trening aby zobaczyć odpowiednie pole</small>
                 </div>
                 
+                <div class="form-group">
+                    <label for="opis">Opis / Modyfikacje (opcjonalnie)</label>
+                    <input type="text" id="opis" name="opis" placeholder="np. 50 kg zamiast 90 kg, zielona guma">
+                    <small>Dodaj szczegóły jeśli zrobiłeś/aś trening ze zmianami (np. mniejszy ciężar, banda zamiast pull-upów)</small>
+                </div>
+                
                 <button type="submit" class="submit-btn" id="submitBtn">Zapisz wynik</button>
             </form>
         </div>
@@ -304,7 +310,8 @@
                 imie: document.getElementById('imie').value.trim(),
                 kategoria: document.getElementById('kategoria').value,
                 wod_id: selectedWodId,
-                wyniki: wynikiValue
+                wyniki: wynikiValue,
+                opis: document.getElementById('opis').value.trim() || null
             };
             
             try {
